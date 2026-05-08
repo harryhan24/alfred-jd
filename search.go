@@ -23,10 +23,12 @@ func expandPath(path string) string {
 	return re.ReplaceAllString(path, os.Getenv("HOME"))
 }
 
-// setup gets the JD_DIR workflow variable
-//   Throws an error and stops if the variable has no value or the path
-//   does not exist.
-func setup() (startDir string) {
+// setup gets the JD_DIR and JD_EXCLUDE workflow variables.
+//   Throws an error and stops if JD_DIR has no value or its path
+//   does not exist. JD_EXCLUDE is a comma-separated list of paths to
+//   omit from search results; entries may be absolute, ~-prefixed, or
+//   relative to JD_DIR.
+func setup() (startDir string, excludes []string) {
 
 	// get the value from Alfred's workflow environment variables
 	startDir = wf.Config.Get("JD_DIR")
@@ -42,11 +44,44 @@ func setup() (startDir string) {
 		wf.Fatal("Path set for J.D directory does not exist.")
 	}
 
-	return (startDir)
+	excludes = parseExcludes(wf.Config.Get("JD_EXCLUDE"), startDir)
+
+	return startDir, excludes
 }
 
-// get the folders matching the glob pattern
-func readDir(pattern string) (files []file) {
+// parseExcludes splits a comma-separated JD_EXCLUDE value into cleaned
+// absolute paths. Relative entries are joined onto startDir.
+func parseExcludes(raw, startDir string) (excludes []string) {
+	if raw == "" {
+		return nil
+	}
+	for _, tok := range strings.Split(raw, ",") {
+		ex := strings.TrimSpace(tok)
+		if ex == "" {
+			continue
+		}
+		ex = expandPath(ex)
+		if !filepath.IsAbs(ex) {
+			ex = filepath.Join(startDir, ex)
+		}
+		excludes = append(excludes, filepath.Clean(ex))
+	}
+	return excludes
+}
+
+// isExcluded reports whether path equals or sits beneath any excluded path.
+func isExcluded(path string, excludes []string) bool {
+	for _, ex := range excludes {
+		if path == ex || strings.HasPrefix(path, ex+string(filepath.Separator)) {
+			return true
+		}
+	}
+	return false
+}
+
+// get the folders matching the glob pattern, dropping any path that
+// matches an entry in excludes.
+func readDir(pattern string, excludes []string) (files []file) {
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		fmt.Printf("Error: %v", err)
@@ -68,7 +103,12 @@ func readDir(pattern string) (files []file) {
 				continue
 			}
 
-			files = append(files, file{filepath.Join(m, fi.Name()), fi.IsDir()})
+			full := filepath.Join(m, fi.Name())
+			if isExcluded(full, excludes) {
+				continue
+			}
+
+			files = append(files, file{full, fi.IsDir()})
 		}
 	}
 
@@ -81,7 +121,7 @@ func runSearch(searchlvl, query string) {
 	// Get path to J.D directory and construct glob pattern
 	// ----------------------------------------------------------------
 
-	startDir := setup()
+	startDir, excludes := setup()
 
 	var searchPattern string
 
@@ -100,7 +140,7 @@ func runSearch(searchlvl, query string) {
 	// Load data and create Alfred items
 	// ----------------------------------------------------------------
 
-	for _, file := range readDir(searchPattern) {
+	for _, file := range readDir(searchPattern, excludes) {
 		// Convenience method. Sets Item title to filename, subtitle
 		// to shortened path, arg to full path, and icon to file icon.
 		it := wf.NewFileItem(file.Path)
