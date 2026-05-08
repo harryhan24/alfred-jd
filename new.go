@@ -69,7 +69,7 @@ func labelFolder(catFolder, query string) {
 	folderName := filepath.Base(catFolder)
 
 	// get a slice of files in the category folder
-	files := readDir(catFolder)
+	files := readDir(catFolder, nil)
 	// get the next index number: returns an AC.ID string
 	idx := getNextIdx(files, folderName)
 	pPath := prettyPath(catFolder) + "/" + idx + query
@@ -97,13 +97,13 @@ func makeNew() {
 		return
 	}
 
-	startDir := setup()
+	startDir, excludes := setup()
 
 	// ----------------------------------------------------------------
 	// Load data and create Alfred items
 	// ----------------------------------------------------------------
 
-	for _, file := range readDir(startDir + "/*") {
+	for _, file := range readDir(startDir+"/*", excludes) {
 		// NewFileItem usually passes the file path as Arg()
 		// but this prepopulates the text entry at the next step
 		// which is not what we want. Passing Arg("") here clears

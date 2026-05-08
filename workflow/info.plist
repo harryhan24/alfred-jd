@@ -872,6 +872,27 @@ Please post any bugs or feature requests on the GitHub repo ❤️.</string>
 			<key>variable</key>
 			<string>JD_DIR</string>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string></string>
+				<key>placeholder</key>
+				<string>e.g. 99_archive, ~/para/30-39_resources/35_drafts</string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Comma-separated list of paths to exclude from search results. Entries can be absolute, ~-prefixed, or relative to the JD root folder.</string>
+			<key>label</key>
+			<string>Excluded paths</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>JD_EXCLUDE</string>
+		</dict>
 	</array>
 	<key>variables</key>
 	<dict>
