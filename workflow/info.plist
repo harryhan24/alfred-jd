@@ -849,6 +849,30 @@ Please post any bugs or feature requests on the GitHub repo ❤️.</string>
 			<integer>425</integer>
 		</dict>
 	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string></string>
+				<key>placeholder</key>
+				<string>~/path/to/your/JD/root</string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Path to the root folder of your Johnny.Decimal filing system. The leading tilde (~) is expanded to your home directory.</string>
+			<key>label</key>
+			<string>JD root folder</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>JD_DIR</string>
+		</dict>
+	</array>
 	<key>variables</key>
 	<dict>
 		<key>JD_DIR</key>
